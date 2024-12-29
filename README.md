@@ -1,5 +1,9 @@
 # Replicate
 This package was build to replicate files between two TrueNAS systems. 
+After the replication is done, 'rtcwake' is called to put the backup system
+to sleep, until the next wakeup time. This wakeup time is configured in 
+the configuration file. When there are errors during the rsync operation
+these errors may be mailed to a configured address. 
 
 
 # Installation
@@ -29,7 +33,7 @@ $ ./venv/bin/pip install replicate-1.0.12-py3-none-any.whl
 
 Or install the replicate module from git directly.
 ```bash
-pip install git+https://github.com/pe2mbs.com/replicate.git@main
+pip install git+https://github.com/pe2mbs/replicate.git
 ```
 Use 'main' when you need to latest development branch or use 'stable'
 for the latest stable release.
@@ -37,20 +41,20 @@ for the latest stable release.
 On installing the replicate module also the dependencies are installed
 in the virtual environment. 
 
-# Starting 
+# Starting the replication
 The start command is therefor:
 
 ```bash
 $ /etc/replicate/venv/bin/replicate
 ```
-    
-
-The configuration is stored in /etc/replicate/config.yaml 
+The configuration is stored in /etc/replicate/config.yaml
 
 # Example configuration
-The following configuration this is setup on the backup node. This node 
+The following configuration this is set up on the backup node. This node 
 sleeps until 1:00 AM every day, on boot the task should be started.
 when finished the node shall goback into deep sleep until the next day.
+Make sure that the config file has attribute 0600, so that only root 
+can read the file, as it stores possible password and key filename.  
 
 ```yaml
 operation:  pull
@@ -69,7 +73,7 @@ mapping:
     dst:    /mnt/storage
 logging:
     filename:   /var/log/replicate/replicate.log
-    level:      DEBUG
+    level:      INFO
 mail:
     username:   truenas@example.com
     password:   a-very-secret-password-for-truenas@example.com
@@ -78,6 +82,100 @@ mail:
     host:       example.com
     port:       465
 ```
+
+## operation
+Operations are push or pull, for a backup system this should always be 'pull'.
+When omitted 'pull' is the default.
+
+## hostname
+This is the hostname or IP address of the primary NAS, where the files must be 
+replicated from.
+
+## username
+This is username on the primary NAS, a public key must be setup for this user.
+
+## ssh-key
+This is the public key file for the replication user. see for more information 
+https://www.ssh.com/academy/ssh-keys
+
+## deep-sleep
+This boolean flag indicates if the system shall go into sleep mode by using 
+rtcwake. When 'deep-sleep' is omitted true is the default.
+
+## every
+Any of the 'weeks', 'days', 'hours', 'minutes' or 'seconds' must be set.
+The smallest value is 1 day, 24 hours, 1440 minutes or 86400 seconds. 
+
+The setting in the example, performs once a day at 6:00 AM the replication
+and then goto sleep again.
+
+### weeks
+The number of weeks between replication.
+
+### days
+The number of days between replication.
+
+### hours
+The number of hours between replication.
+
+### minutes
+The number of minutes between replication.
+
+### seconds
+The number of seconds between replication.
+
+### time
+This is the time HH:MM when the system shall wake up after the time is passed.
+
+## bandwidth
+The bandwidth can be limited during the replication, when omitted the maximum 
+bandwidth is used by the replication program. The bandwidth is set in KiloBytes
+per second. For a 100 MBit line set the 'bandwidth' to 5000 to use half of the 
+line capacity.
+
+## mapping
+the mapping is a list or src (source) and dst (destination) folders. 
+### src
+The source path on the primary NAS.
+
+### dst
+The destination path on the backup NAS.
+
+## logging:
+When the logging section is omitted not logging is performed.
+
+### filename
+When filename is omitted the logging is done to syslog.
+
+### level
+When set to INFO only on errors there shall be an e-mail sent.
+Whenever level is set to DEBUG after every operation an e-mail is sent, this
+primary intended for development.
+
+## mail
+When the mail section is included the replication program shall send e-mails
+
+### host
+The SMTP host name or IP-address
+
+### port
+The SMTP port to be used, this maybe 465, 587 depending on the configuration
+of the mail server.
+
+### username
+The username to connect to the SMTP host
+
+### password
+The password that belongs to username to connect to the SMTP host.
+
+### sender
+This is the e-mail address of the sender, some mail servers may allow any 
+e-mail address, then configure an address that indicates the machine, 
+( like truenas.backup@example.com )
+
+### receiver
+This is the email address where the emails are send to.
+
 
 # Stopping the system from sleeping after the rsync task
 To stop the system to go into deep sleep, do the following:
@@ -113,3 +211,5 @@ When the maintenance is done, simply restart the system (make sure
 no SSH session is open). The system reboots the replicator program 
 starts upon finishing the system shall go back into deep sleep.
 
+# Tested 
+This is tested on TrueNAS scale version 24.04.

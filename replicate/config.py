@@ -99,13 +99,15 @@ class ISmtpMail( BaseModel ):
 
 
 class IConfiguration( BaseModel ):
-    operation:  t.Literal[ "pull", "push" ]
+    operation:  t.Literal[ "pull", "push" ]     = Field( 'pull' )
     hostname:   str
     username:   str
-    deep_sleep: bool                = Field( True, validation_alias = AliasChoices( 'deep_sleep',
-                                                                                    'deep-sleep' ) )
-    ssh_key:    t.Optional[ str ]   = Field( '~/.ssh/ssh_id_rsa', validation_alias = AliasChoices( 'ssh_key',
-                                                                                                   'ssh-key' ) )
+    deep_sleep: bool                            = Field( True,
+                                                         validation_alias = AliasChoices( 'deep_sleep',
+                                                                                          'deep-sleep' ) )
+    ssh_key:    t.Optional[ str ]               = Field( '~/.ssh/ssh_id_rsa',
+                                                         validation_alias = AliasChoices( 'ssh_key',
+                                                                                          'ssh-key' ) )
     mapping:    t.List[ IFolderMap ]
     every:      IEvery
     bandwidth:  int                 = Field( -1 )
