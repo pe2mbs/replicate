@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+
+[project]
+name = "replicate"
+version = "1.0.13"
+authors = [ { name="Marc Bertens-Nguyen", email="m.bertens@pe2mbs.nl" } ]
+description = "Replicate files between two machines using rsync"
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "pyyaml",
+    "pydantic",
+]
+keywords = ["replicate", "rsync" ]
+
+[project.scripts]
+replicate = "replicate.__main__:main"
+
+[project.urls]
+Homepage = "https://github.com/pe2mbs/replicate"
+Issues = "https://github.com/pe2mbs/replicate/issues"
